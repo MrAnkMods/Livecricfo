@@ -4,10 +4,9 @@
   <title>Watch Live Cricket</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Add favicon -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"> <!-- Add custom font -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* General Styles */
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
@@ -21,27 +20,27 @@
     }
 
     header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 20px;
-  background: linear-gradient(45deg, #00bcd4, #0069c0);
-  width: 90%;
-  max-width: 850px;
-  color: #ffffff;
-  border-radius: 25px; /* Rounded header bar */
-  box-shadow: 0 0 15px rgba(0, 123, 255, 0.3); /* Optional glow effect */
-}
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      background: linear-gradient(45deg, #00bcd4, #0069c0);
+      width: 90%;
+      max-width: 850px;
+      color: #ffffff;
+      border-radius: 25px;
+      box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+    }
 
-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  text-shadow: 0 0 10px #0069c0;
-}
+    header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      text-shadow: 0 0 10px #0069c0;
+    }
 
-header h4 {
-  font-size: 14px;
-  font-weight: 400;
-}
+    header h4 {
+      font-size: 14px;
+      font-weight: 400;
+    }
 
     .navbar {
       width: 50%;
@@ -64,7 +63,6 @@ header h4 {
       transform: scale(1.1);
     }
 
-    /* Video Container */
     #video-container {
       width: 90%;
       max-width: 850px;
@@ -82,7 +80,6 @@ header h4 {
       border-radius: 8px;
     }
 
-    /* Buttons */
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -111,7 +108,6 @@ header h4 {
       background: #006699;
     }
 
-    /* Chat Section */
     #chat-container {
       width: 80%;
       max-width: 800px;
@@ -208,7 +204,8 @@ header h4 {
 
     const liveStreamUrl = 'https://vkvsd250.okcdn.ru/cmaf/8177201777196/sig/j6X5gf0MwQc/srcIp/172.69.95.67/urls/45.136.22.65/expires/1743885970114/clientType/13/srcAg/CHROME/fromCache/1/mid/9469206211372/id/8177201777196/get/CKzWsMXLkwIQ6AcYBDIICgYI2AYQ4AM6BAjE2AJaBggBEAIoF2ICCBAd9w359pl0Qg/track.m3u8';
 
-    let username = prompt('Enter a username:') || 'Anonymous';
+    let username = localStorage.getItem('chatUsername') || prompt('Enter a username:') || 'Anonymous';
+    localStorage.setItem('chatUsername', username);
 
     playButton.addEventListener('click', () => {
       if (Hls.isSupported()) {
@@ -237,7 +234,7 @@ header h4 {
         messageElement.classList.add('chat-message');
         messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
         chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         chatInput.value = '';
       }
     }
