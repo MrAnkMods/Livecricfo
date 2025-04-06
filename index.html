@@ -227,17 +227,31 @@
       }
     });
 
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('chat-message');
-        messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
-        chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        chatInput.value = '';
-      }
-    }
+    const chatSocket = new WebSocket('ws://localhost:8080');
+
+chatSocket.addEventListener('open', () => {
+  console.log('Connected to chat server');
+});
+
+chatSocket.addEventListener('message', (event) => {
+  const messages = JSON.parse(event.data);
+  messages.forEach(({ username, message }) => {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message');
+    messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+  });
+});
+
+function sendMessage() {
+  const message = chatInput.value.trim();
+  if (message) {
+    const chat = { username, message };
+    chatSocket.send(JSON.stringify(chat));
+    chatInput.value = '';
+  }
+}
   </script>
 </body>
 </html>
