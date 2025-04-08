@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Watch Live Cricket</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Add favicon -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"> <!-- Add custom font -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Live IPL Stream - ANKMODS</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js" defer></script>
   <style>
-    /* General Styles */
+      /* General Styles */
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
@@ -63,184 +65,496 @@ header h4 {
     .logo:hover {
       transform: scale(1.1);
     }
-
-    /* Video Container */
-    #video-container {
-      width: 90%;
-      max-width: 850px;
-      margin: 20px auto;
-      background: #222;
-      border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      overflow: hidden;
-    }
-
-    #live-video {
+    .video-container {
+      position: relative;
       width: 100%;
-      aspect-ratio: 16 / 9;
-      background-color: black;
-      border-radius: 8px;
+      background: #000;
+      overflow: hidden;
+      min-height: 250px;
     }
-
-    /* Buttons */
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      background: #4CAF50;
-      color: white;
-      border-radius: 30px;
+    
+    .video-player {
+      width: 100%;
+      aspect-ratio: 16/9;
+    }
+    
+    .controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    
+    .video-container:hover .controls {
+      opacity: 1;
+    }
+    
+    .control-btn {
+      background: rgba(255, 255, 255, 0.1);
       border: none;
-      margin-top: 15px;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-
-    button:hover {
-      transform: scale(1.05);
-      background: #3e8e41;
+    
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
     }
-
-    #telegram-button {
-      background: #0088cc;
-      box-shadow: 0 0 10px rgba(0, 136, 204, 0.5);
+    
+    .progress-container {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      cursor: pointer;
     }
-
-    #telegram-button:hover {
-      background: #006699;
+    
+    .progress {
+      height: 100%;
+      background: #e53e3e;
+      width: 0;
+      border-radius: 2px;
+      transition: width 0.1s linear;
     }
-
-    /* Chat Section */
-    #chat-container {
-      width: 80%;
-      max-width: 800px;
-      padding: 20px;
-      margin-top: 30px;
+    
+    #global-loading {
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+    }
+    
+    #global-loading .animate-spin {
+      border-color: #3b82f6;
+      border-top-color: transparent;
+      box-shadow: 0 0 10px #3b82f6;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    :-webkit-full-screen .video-container {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    .action-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 20;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-bar-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .action-bar-title {
       display: flex;
       flex-direction: column;
-      background: #212121;
-      border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
     }
-
-    #chat-messages {
-      flex-grow: 2;
-      overflow-y: auto;
-      max-height: 300px;
-      margin-bottom: 10px;
-      background: #181818;
-      border-radius: 5px;
-      padding: 10px;
-      color: #f5f5f5;
-    }
-
-    .chat-message {
-      margin-bottom: 10px;
-      padding: 5px 10px;
-      border-radius: 5px;
-      background-color: #333;
-      box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.1);
-    }
-
-    #chat-input-container {
-      display: flex;
-    }
-
-    #chat-input {
-      flex-grow: 1;
-      padding: 10px;
-      background-color: #333;
-      color: #f5f5f5;
-      border: 1px solid #555;
-      border-radius: 30px;
-      margin-right: 10px;
-      box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
-    }
-
-    #chat-send {
-      background-color: #007bff;
-      border: none;
-      transition: background-color 0.3s, transform 0.2s;
-      box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
-    }
-
-    #chat-send:hover {
-      background-color: #0056b3;
-      transform: scale(1.05);
+    
+    @media (max-width: 640px) {
+      .action-bar {
+        padding: 0.5rem 1rem;
+      }
+      .action-bar-title h1 {
+        font-size: 1.25rem;
+      }
+      .action-bar-title p {
+        font-size: 0.75rem;
+      }
     }
   </style>
 </head>
-<body>
-  <div class="navbar">
+<body class="bg-gray-900 text-white transition-colors duration-300">
+  <!-- Action Bar -->
+    <div class="navbar">
     <img src="logo.jpg" class="logo" alt="Website Logo">
   </div>
-
   <header>
     <h1>WELCOME TO ANKMODS</h1>
     <h4>We appreciate you! Thank you for being a part of our online community!</h4>
   </header>
-
-  <div id="video-container">
-    <video id="live-video" controls poster="poster-image.png">
-      <p>Your browser does not support HTML5 video.</p>
-    </video>
-  </div>
-
-  <button id="play-button">Play Live Stream</button>
-  <a href="https://t.me/Ankmods0" target="_blank"><button id="telegram-button">Join Telegram</button></a>
-
-  <div id="chat-container">
-    <div id="chat-messages"></div>
-    <div id="chat-input-container">
-      <input type="text" id="chat-input" placeholder="Enter your message">
-      <button id="chat-send">Send</button>
+ 
+      <div class="flex items-center gap-4">
+        <select id="quality-selector" class="bg-gray-600 text-white rounded p-1 text-sm">
+          <option value="high">1080p</option>
+          <option value="medium" selected>720p</option>
+          <option value="low">360p</option>
+        </select>
+        <button id="theme-toggle" class="text-blue-400 hover:text-blue-300" aria-label="Toggle theme">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- Loading Overlay -->
+  <div id="global-loading" class="fixed inset-0 hidden items-center justify-center">
+    <div class="text-center space-y-4">
+      <div class="w-12 h-12 border-4 rounded-full animate-spin"></div>
+      <p class="text-blue-500">Loading Stream...</p>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div id="error-message" class="fixed top-4 right-4 bg-red-600 p-4 rounded-lg max-w-xs hidden"></div>
+
+  <div class="container mx-auto p-4 pt-24">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Video Player Section -->
+      <div class="lg:col-span-2">
+        <div class="video-container rounded-xl shadow-xl">
+          <video id="live-video" class="video-player" preload="metadata"></video>
+          <!-- Video Controls -->
+          <div class="controls">
+            <button id="play-pause" class="control-btn text-white" tabindex="0" aria-label="Play or pause video">
+              <i class="fas fa-play"></i>
+            </button>
+            <div class="text-white text-sm" id="time-display">00:00 / LIVE</div>
+            <div class="progress-container">
+              <div class="progress" id="progress"></div>
+            </div>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1" class="w-20 text-white" aria-label="Volume control">
+            <button id="volume" class="control-btn text-white" tabindex="0" aria-label="Mute or unmute video">
+              <i class="fas fa-volume-up"></i>
+            </button>
+            <button id="fullscreen" class="control-btn text-white" tabindex="0" aria-label="Toggle fullscreen">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+        </div>
+        
+        <center class="mt-4">
+          <a href="https://t.me/Ankmods0" target="_blank" 
+             class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full inline-flex items-center gap-2 transition-all">
+            <i class="fab fa-telegram"></i>
+            Join Telegram Channel
+          </a>
+        </center>
+      </div>
+
+      <!-- Live Chat Section -->
+      <div class="lg:col-span-1">
+        <div class="bg-gray-800 rounded-xl p-4 h-[500px] flex flex-col shadow-xl chat-section">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Live Chat 💬</h3>
+            <button id="toggle-chat" class="lg:hidden text-blue-400 text-sm">Toggle Chat</button>
+          </div>
+          <div id="chat-content" class="flex-1 hidden lg:block">
+            <div id="chat-messages" class="flex-1 bg-gray-700 rounded-lg p-3 overflow-y-auto space-y-3 text-sm"></div>
+            <div class="mt-4 flex gap-2">
+              <input type="text" id="chat-input" 
+                     class="flex-1 bg-gray-600 text-white rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     placeholder="Type your message..." aria-label="Chat message input">
+              <button id="chat-send" 
+                      class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors" aria-label="Send message">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest" defer></script>
   <script>
-    const video = document.getElementById('live-video');
-    const playButton = document.getElementById('play-button');
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const chatSend = document.getElementById('chat-send');
+    document.addEventListener('DOMContentLoaded', () => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyAYXSWnTHjUBDjIi3ylSn1kN0K1v2m4mW4",
+        authDomain: "ipl-streaming-f3d50.firebaseapp.com",
+        projectId: "ipl-streaming-f3d50",
+        storageBucket: "ipl-streaming-f3d50.firebasestorage.app",
+        messagingSenderId: "41702918970",
+        appId: "1:41702918970:web:aa17fab82de1090adf5e03",
+        measurementId: "G-ZPHSKD3DD1"
+      };
 
-    const liveStreamUrl = 'https://ee4ee8c03a26.eu-central-1.playback.live-video.net/api/video/v1/eu-central-1.755921704393.channel.LOohfipmCQDP.m3u8';
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
 
-    let username = prompt('Enter a username:') || 'Anonymous';
+      const config = {
+        streamUrl: 'https://ee4ee8c03a26.eu-central-1.playback.live-video.net/api/video/v1/eu-central-1.755921704393.channel.LOohfipmCQDP.m3u8',
+        autoPlay: true,
+        maxRetries: 3,
+        retryDelay: 3000
+      };
 
-    playButton.addEventListener('click', () => {
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(liveStreamUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      const video = document.getElementById('live-video');
+      const globalLoading = document.getElementById('global-loading');
+      const errorMessage = document.getElementById('error-message');
+      let hls = null;
+      let retryCount = 0;
+      let isPlaying = false;
+      let isMuted = false;
+      const badWords = ['badword1', 'badword2']; // Customize this list
+
+      function initPlayer() {
+        globalLoading.style.display = 'flex';
+
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+          if (hls) hls.destroy();
+
+          const quality = document.getElementById('quality-selector').value;
+          hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+            backBufferLength: 1,
+            maxMaxBufferLength: quality === 'low' ? 10 : quality === 'medium' ? 20 : 30
+          });
+
+          hls.loadSource(config.streamUrl);
+          hls.attachMedia(video);
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            globalLoading.style.display = 'none';
+            retryCount = 0; // Reset retry count on successful load
+            if (config.autoPlay) video.play().catch(handleError);
+          });
+
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              if (retryCount < config.maxRetries) {
+                retryCount++;
+                const delay = config.retryDelay * Math.pow(2, retryCount);
+                setTimeout(initPlayer, delay);
+                showError(`Connection lost. Retrying (${retryCount}/${config.maxRetries})...`);
+              } else {
+                showError('Failed to connect. Please refresh the page.');
+              }
+            }
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = config.streamUrl;
+          video.addEventListener('loadedmetadata', () => {
+            globalLoading.style.display = 'none';
+            if (config.autoPlay) video.play();
+          });
+        } else {
+          showError('Your browser does not support live streaming.');
+        }
+      }
+
+      function handleError(error) {
+        console.error('Player Error:', error);
+        showError(error.message);
+      }
+
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.remove('hidden');
+        setTimeout(() => errorMessage.classList.add('hidden'), 5000);
+      }
+
+      function togglePlay() {
+        if (video.paused) {
+          video.play().then(() => {
+            isPlaying = true;
+            document.getElementById('play-pause').innerHTML = '<i class="fas fa-pause"></i>';
+          }).catch(handleError);
+        } else {
+          video.pause();
+          isPlaying = false;
+          document.getElementById('play-pause').innerHTML = '<i class="fas fa-play"></i>';
+        }
+      }
+
+      document.getElementById('play-pause').addEventListener('click', togglePlay);
+      document.getElementById('play-pause').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') togglePlay();
+      });
+
+      document.getElementById('volume').addEventListener('click', () => {
+        isMuted = !video.muted;
+        video.muted = isMuted;
+        document.getElementById('volume').innerHTML =
+          isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+        document.getElementById('volume-slider').value = isMuted ? 0 : video.volume;
+      });
+
+      document.getElementById('volume-slider').addEventListener('input', (e) => {
+        video.volume = e.target.value;
+        video.muted = e.target.value == 0;
+        document.getElementById('volume').innerHTML =
+          video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+      });
+
+      document.getElementById('fullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          video.parentElement.requestFullscreen().catch(handleError);
+        } else {
+          document.exitFullscreen();
+        }
+      });
+
+      document.getElementById('quality-selector').addEventListener('change', initPlayer);
+
+      video.addEventListener('timeupdate', () => {
+        const progressBar = document.getElementById('progress');
+        if (isFinite(video.duration) && video.duration > 0) {
+          const progress = (video.currentTime / video.duration) * 100;
+          progressBar.style.width = `${progress}%`;
+          document.getElementById('time-display').textContent = formatTime(video.currentTime) + ' / LIVE';
+        } else {
+          progressBar.style.width = '100%';
+          document.getElementById('time-display').textContent = 'LIVE';
+        }
+      });
+
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      let username = localStorage.getItem('username') ||
+                     prompt('Enter your chat nickname:') ||
+                     `User${Math.floor(Math.random() * 1000)}`;
+      localStorage.setItem('username', username);
+
+      // Order messages in ascending order for natural chat flow
+      db.collection("messages")
+        .orderBy("timestamp", "asc")
+        .limit(7)
+        .onSnapshot((snapshot) => {
+          const chatMessages = document.getElementById('chat-messages');
+          chatMessages.innerHTML = '';
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            displayMessage(data);
+          });
+        });
+
+      async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        let message = input.value.trim();
+        
+        // Prevent sending an empty message
+        if (!message) return;
+        
+        badWords.forEach(word => {
+          message = message.replace(new RegExp(word, 'gi'), '***');
+        });
+
+        try {
+          await db.collection("messages").add({
+            text: message,
+            user: username,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          input.value = '';
+        } catch (error) {
+          console.error('Error sending message:', error);
+          showError('Message failed to send. Please try again.');
+        }
+      }
+
+      // Improved displayMessage: using DOM creation for safety and structure
+      function displayMessage(data) {
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Create container for a single message
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('bg-gray-600', 'p-2', 'rounded-lg', 'mb-2');
+
+        // Create header for username and timestamp
+        const headerDiv = document.createElement('div');
+        headerDiv.classList.add('flex', 'justify-between', 'items-center', 'text-xs', 'mb-1');
+
+        const userSpan = document.createElement('span');
+        userSpan.classList.add('font-semibold', 'text-blue-400');
+        userSpan.textContent = data.user;
+
+        const timestampSpan = document.createElement('span');
+        timestampSpan.classList.add('text-gray-400');
+        const timestamp = data.timestamp && data.timestamp.toDate 
+                          ? new Date(data.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                          : 'Just now';
+        timestampSpan.textContent = timestamp;
+
+        headerDiv.appendChild(userSpan);
+        headerDiv.appendChild(timestampSpan);
+
+        // Create message text element
+        const messageTextDiv = document.createElement('div');
+        messageTextDiv.classList.add('text-gray-100');
+        messageTextDiv.textContent = data.text;
+
+        messageDiv.appendChild(headerDiv);
+        messageDiv.appendChild(messageTextDiv);
+
+        chatMessages.appendChild(messageDiv);
+        // Auto-scroll to the bottom after adding a new message
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      document.getElementById('chat-send').addEventListener('click', sendMessage);
+      document.getElementById('chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      document.getElementById('toggle-chat').addEventListener('click', () => {
+        document.getElementById('chat-content').classList.toggle('hidden');
+      });
+
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        document.body.classList.toggle('bg-gray-100');
+        document.body.classList.toggle('text-black');
+        document.body.classList.toggle('bg-gray-900');
+        document.body.classList.toggle('text-white');
+        document.getElementById('theme-toggle').innerHTML =
+          document.body.classList.contains('bg-gray-900') ?
+          '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+      });
+
+      document.addEventListener('fullscreenchange', () => {
+        const fullscreenBtn = document.getElementById('fullscreen');
+        fullscreenBtn.innerHTML = document.fullscreenElement ?
+          '<i class="fas fa-compress"></i>' :
+          '<i class="fas fa-expand"></i>';
+      });
+
+      window.addEventListener('online', () => {
+        if (!hls || hls.destroyed) initPlayer();
+      });
+
+      window.addEventListener('offline', () => {
+        showError('You are offline. Please check your internet connection.');
+      });
+
+      // Start the player once HLS is loaded
+      if (typeof Hls !== 'undefined') {
+        initPlayer();
       } else {
-        video.src = liveStreamUrl;
-        video.addEventListener('loadedmetadata', () => video.play());
+        document.querySelector('script[src*="hls.js"]').onload = initPlayer;
       }
     });
-
-    chatSend.addEventListener('click', sendMessage);
-
-    chatInput.addEventListener('keypress', (event) => {
-      if (event.key === 'Enter') {
-        sendMessage();
-      }
-    });
-
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('chat-message');
-        messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
-        chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
-        chatInput.value = '';
-      }
-    }
   </script>
 </body>
-</html>
+          </html>
