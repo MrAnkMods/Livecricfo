@@ -304,7 +304,7 @@
       const db = firebase.firestore();
 
       const config = {
-        streamUrl: 'https://cdn.flowplayer.com/a30bd6bc-f98b-47bc-abf5-97633d4faea0/hls/de3f6ca7-2db3-4689-8160-0f574a5996ad/playlist.m3u8',
+        streamUrl: 'https://ee4ee8c03a26.eu-central-1.playback.live-video.net/api/video/v1/eu-central-1.755921704393.channel.LOohfipmCQDP.m3u8',
         autoPlay: false,
         maxRetries: 3,
         retryDelay: 3000
@@ -320,49 +320,56 @@
       const badWords = ['badword1', 'badword2']; // Customize this list
 
       function initPlayer() {
-        globalLoading.style.display = 'flex';
+  globalLoading.style.display = 'flex';
 
-        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-          if (hls) hls.destroy();
+  const wasPlaying = !video.paused; // Capture if the video was playing
 
-          const quality = document.getElementById('quality-selector').value;
-          hls = new Hls({
-            enableWorker: true,
-            lowLatencyMode: true,
-            backBufferLength: 1,
-            maxMaxBufferLength: quality === 'low' ? 10 : quality === 'medium' ? 20 : 30
-          });
+  if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+    if (hls) hls.destroy();
 
-          hls.loadSource(config.streamUrl);
-          hls.attachMedia(video);
+    const quality = document.getElementById('quality-selector').value;
+    hls = new Hls({
+      enableWorker: true,
+      lowLatencyMode: true,
+      backBufferLength: 1,
+      maxMaxBufferLength: quality === 'low' ? 10 : quality === 'medium' ? 20 : 30
+    });
 
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            globalLoading.style.display = 'none';
-            retryCount = 0;
-          });
+    hls.loadSource(config.streamUrl);
+    hls.attachMedia(video);
 
-          hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-              if (retryCount < config.maxRetries) {
-                retryCount++;
-                const delay = config.retryDelay * Math.pow(2, retryCount);
-                setTimeout(initPlayer, delay);
-                showError(`Connection lost. Retrying (${retryCount}/${config.maxRetries})...`);
-              } else {
-                showError('Failed to connect. Please refresh the page.');
-              }
-            }
-          });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = config.streamUrl;
-          video.addEventListener('loadedmetadata', () => {
-            globalLoading.style.display = 'none';
-            if (config.autoPlay) video.play();
-          });
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      globalLoading.style.display = 'none';
+      retryCount = 0;
+
+      // Play the video again if it was playing before
+      if (wasPlaying) {
+        video.play().catch(handleError);
+      }
+    });
+
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data.fatal) {
+        if (retryCount < config.maxRetries) {
+          retryCount++;
+          const delay = config.retryDelay * Math.pow(2, retryCount);
+          setTimeout(initPlayer, delay);
+          showError(`Connection lost. Retrying (${retryCount}/${config.maxRetries})...`);
         } else {
-          showError('Your browser does not support live streaming.');
+          showError('Failed to connect. Please refresh the page.');
         }
       }
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = config.streamUrl;
+    video.addEventListener('loadedmetadata', () => {
+      globalLoading.style.display = 'none';
+      if (config.autoPlay) video.play();
+    });
+  } else {
+    showError('Your browser does not support live streaming.');
+  }
+}
 
       function handleError(error) {
         console.error('Player Error:', error);
@@ -587,4 +594,4 @@
     });
   </script>
 </body>
-  </html>
+        </html>
