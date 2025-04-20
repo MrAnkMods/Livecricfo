@@ -157,20 +157,6 @@
             color: red;
             margin-top: 10px;
         }
-          .stylish-button {
-    background-color: #007bff; /* Blue background */
-    color: white; /* White text */
-    padding: 15px 30px; /* Padding around text */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Change cursor on hover */
-    font-size: 18px; /* Larger font size */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-  }
-
-  .stylish-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-  }
     </style>
 </head>
 <body class="bg-gray-900 text-white transition-colors duration-300">
@@ -196,7 +182,7 @@
     <div class="flex justify-center mt-4 gap-4">
         <button id="server1" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full transition-colors">Server 1</button>
         <button id="server2" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full transition-colors">Server 2</button>
-        <button class="stylish-button" onclick="openStream()">Server4</button>
+        <button id="server3" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full transition-colors">Server 3</button>
     </div>
 
     <div id="global-loading" class="fixed inset-0 hidden items-center justify-center">
@@ -562,9 +548,6 @@
                 video.style.transform = `scale(${currentScale})`;
                 video.style.transformOrigin = 'center';
             }
-            function openStream() {
-  window.open('https://user65873.hls-video.net/hls/token/a3f0c81db39d64f85b6f6a5cfaa1b2ce/stream.m3u8', '_blank');
-        }
 
             document.getElementById('zoom-in').addEventListener('click', zoomIn);
             document.getElementById('zoom-out').addEventListener('click', zoomOut);
@@ -583,8 +566,8 @@
                 currentServer = 'server3';
                 initPlayer(config.server3);
             });
-            
+
         });
     </script>
 </body>
-</html>
+        </html>
