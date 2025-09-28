@@ -269,14 +269,10 @@
 
             const mpdUrl = "YOUR_MPD_URL_HERE"; // Replace with your MPD URL
             const decryptionKey = "YOUR_KEY_HERE"; // Replace with your decryption key (if any)
-
-            const config = {
+const config = {
                 server1: 'https://liveakmt-m-md.slivcdn.com/v1/manifest/0085f7057986fc2f8467089bb19b8b7e4f1bf8d7/mediaT540fprod-PlaybackConfig/3-8e2b1032-0754-4379-beb4-041493b59103/hdntl=exp=1759164967~acl=/*~id=ff1ce4b6b11e9348-2201051050238664278~data=hdntl,2119924,cricacc12809,HIN~hmac=e22fd72d7acd5e57d773bd8a6f419503fed1dd17d4d9850aa07363e2bab689b7/1.m3u8',
-                server2: {
-                    mpd: https://cricketstan.github.io/Channel-13/,
-                    key: decryptionKey
-                },
-                server3: 'https://dish.slivcdn.com/hls/live/2020591/TEN3HD/master_3500.m3u8',
+                server2: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
+                server3: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
                 autoPlay: false,
                 maxRetries: 3,
                 retryDelay: 3000
@@ -284,46 +280,14 @@
 
             const video = document.getElementById('live-video');
             const globalLoading = document.getElementById('global-loading');
-            const errorDiv = document.getElementById("error");
             const errorMessage = document.getElementById('error-message');
             let hls = null;
             let dash = null;
             let currentServer = 'server1';
 
-            // Initialize Dash.js player
-            function initDashPlayer() {
-                dash = dashjs.MediaPlayer().create();
-                dash.initialize(video, config.server2.mpd, true);
-
-                // Set protection data if applicable
-                dash.setProtectionData({
-                    "com.widevine.alpha": {
-                        "serverURL": "YOUR_LICENSE_SERVER_URL_HERE", // License server URL if using DRM
-                        "httpRequestHeaders": {
-                            "Content-Type": "application/json"
-                        },
-                        "key": config.server2.key // Raw key if provided; otherwise, handled by license server
-                    }
-                });
-
-                // Error handling
-                dash.on(dashjs.MediaPlayer.events.ERROR, function (e) {
-                    errorDiv.textContent = `DASH Error: ${e.error.message}`;
-                    console.error("DASH Error:", e);
-                });
-
-                dash.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, function () {
-                    globalLoading.style.display = 'none';
-                    video.play(); // Auto-play when loaded
-                    console.log("DASH Manifest loaded successfully.");
-                });
-            }
-
             function initPlayer(source) {
                 globalLoading.style.display = 'flex';
-                video.pause();
 
-                // Handle HLS player for Server 1
                 if (currentServer === 'server1' && typeof Hls !== 'undefined' && Hls.isSupported()) {
                     if (hls) hls.destroy();
 
@@ -340,27 +304,35 @@
 
                     hls.on(Hls.Events.MANIFEST_PARSED, () => {
                         globalLoading.style.display = 'none';
-                        video.play(); // Auto-play when loaded
                     });
 
                     hls.on(Hls.Events.ERROR, (event, data) => {
                         handlePlayerError(event, data);
                     });
-                }
-                // Handle DASH player for Server 2
-                else if (currentServer === 'server2' && typeof dashjs !== 'undefined') {
-                    initDashPlayer();
-                }
-                // Handle MP4 for Server 3
-                else if (currentServer === 'server3') {
+
+                } else if (currentServer === 'server2' && typeof dashjs !== 'undefined') {
+                    if (dash) dash.reset();
+                    dash = dashjs.MediaPlayer().create();
+                    dash.initialize(video, source, config.autoPlay);
+
+                    dash.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, () => {
+                        globalLoading.style.display = 'none';
+                    });
+
+                    dash.on(dashjs.MediaPlayer.events.ERROR, (e) => {
+                        handlePlayerError(e);
+                    });
+
+                } else if (currentServer === 'server3') {
                     video.src = source;
                     video.addEventListener('loadedmetadata', () => {
                         globalLoading.style.display = 'none';
-                        if (config.autoPlay) video.play(); // Auto-play when loaded
+                        if (config.autoPlay) video.play();
                     });
                     video.addEventListener('error', (e) => {
                         handlePlayerError(e);
                     });
+
                 } else {
                     showError('Your browser does not support this stream.');
                 }
